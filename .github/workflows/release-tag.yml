@@ -29,9 +29,9 @@ jobs:
           MINOR=0
           MAJOR=0
 
-          if echo "$LABELS" | grep -q '"name":"fix"'; then PATCH=1; fi
-          if echo "$LABELS" | grep -q '"name":"feature"'; then MINOR=1; fi
-          if echo "$LABELS" | grep -q '"name":"breaking-change"'; then MAJOR=1; fi
+          if echo "$LABELS" | grep -e "name:\s*fix\,"; then PATCH=1; fi
+          if echo "$LABELS" | grep -e "name:\s*feature\,"; then MINOR=1; fi
+          if echo "$LABELS" | grep -e "name:\s*breaking-change\,"; then MAJOR=1; fi
 
           VERSION="${{ steps.get_tag.outputs.latest_tag }}"
           [[ "$VERSION" =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]
