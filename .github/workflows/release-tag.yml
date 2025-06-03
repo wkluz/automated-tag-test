@@ -69,7 +69,7 @@ jobs:
 
       - name: Create Git Tag via GitHub API
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GH }}
           TAG: ${{ steps.version.outputs.new_tag }}
           MESSAGE: ${{ steps.tag_note.outputs.annotation }}
         run: |
