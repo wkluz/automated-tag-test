@@ -73,6 +73,7 @@ jobs:
           TAG: ${{ steps.version.outputs.new_tag }}
           MESSAGE: ${{ steps.tag_note.outputs.annotation }}
         run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
           ENDPOINT=https://api.github.com/repos/${{ github.repository }}/git/tags
       
           TAGGER_NAME="github-actions[bot]"
