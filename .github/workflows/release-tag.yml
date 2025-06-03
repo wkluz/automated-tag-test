@@ -75,9 +75,7 @@ jobs:
         run: |
           COMMIT_SHA=$(git rev-parse HEAD)
           ENDPOINT=https://api.github.com/repos/${{ github.repository }}/git/tags
-      
-          TAGGER_NAME="github-actions[bot]"
-          TAGGER_EMAIL="github-actions[bot]@users.noreply.github.com"
+
           TAG_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           JSON_PAYLOAD=$(jq -n \
@@ -92,12 +90,7 @@ jobs:
               tag: $tag,
               message: $message,
               object: $object,
-              type: $type,
-              tagger: {
-                name: $name,
-                email: $email,
-                date: $date
-              }
+              type: $type
             }'
           )
       
