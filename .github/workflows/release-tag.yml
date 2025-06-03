@@ -74,7 +74,8 @@ jobs:
           MESSAGE: ${{ steps.tag_note.outputs.annotation }}
         run: |
           COMMIT_SHA=$(git rev-parse HEAD)
-          ENDPOINT=https://api.github.com/repos/${{ github.repository }}/git/tags
+          ENDPOINT_TAG_OBJ=https://api.github.com/repos/${{ github.repository }}/git/tags
+          ENDPOINT_TAG_REF=https://api.github.com/repos/${{ github.repository }}/git/refs
 
           TAGGER_NAME="github-actions[bot]"
           TAGGER_EMAIL="github-actions[bot]@users.noreply.github.com"
@@ -107,7 +108,7 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/$OWNER/$REPO/git/tags \
+            "$ENDPOINT_TAG_OBJ" \
             -d "$JSON_PAYLOAD"
           )
       
@@ -123,5 +124,5 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/$OWNER/$REPO/git/refs \
+            "$ENDPOINT_TAG_REF" \
             -d "$REF_PAYLOAD"
