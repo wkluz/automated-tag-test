@@ -106,7 +106,12 @@ jobs:
               }
             }'
           )
-      
+          
+          echo "$OWNER"
+          echo "$REPO"
+          echo "https://api.github.com/repos/$OWNER/$REPO/git/tags"
+          echo "$JSON_PAYLOAD"
+
           echo "Sending tag creation request to GitHub API..."
           curl -L \
             -X POST \
