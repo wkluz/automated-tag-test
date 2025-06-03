@@ -1,0 +1,75 @@
+name: Bump version and create tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  tag-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "latest_tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Determine next version
+        id: version
+        run: |
+          LABELS="${{ toJson(github.event.pull_request.labels) }}"
+          PATCH=0
+          MINOR=0
+          MAJOR=0
+
+          if echo "$LABELS" | grep -q '"name":"fix"'; then PATCH=1; fi
+          if echo "$LABELS" | grep -q '"name":"feature"'; then MINOR=1; fi
+          if echo "$LABELS" | grep -q '"name":"breaking-change"'; then MAJOR=1; fi
+
+          VERSION="${{ steps.get_tag.outputs.latest_tag }}"
+          [[ "$VERSION" =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]
+          MAJOR_V=${BASH_REMATCH[1]}
+          MINOR_V=${BASH_REMATCH[2]}
+          PATCH_V=${BASH_REMATCH[3]}
+
+          if [[ "$MAJOR" == "1" ]]; then
+            MAJOR_V=$((MAJOR_V+1)); MINOR_V=0; PATCH_V=0
+          elif [[ "$MINOR" == "1" ]]; then
+            MINOR_V=$((MINOR_V+1)); PATCH_V=0
+          elif [[ "$PATCH" == "1" ]]; then
+            PATCH_V=$((PATCH_V+1))
+          fi
+
+          NEW_TAG="v${MAJOR_V}.${MINOR_V}.${PATCH_V}"
+          echo "new_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Extract tag annotation
+        id: tag_note
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+
+          NOTE=$(echo "$PR_BODY" | awk '/^## Release note/{flag=1; next} /^## /{flag=0} flag')
+
+          if [ -z "$NOTE" ]; then
+            echo "No release note section found, using PR title."
+            NOTE="$PR_TITLE"
+          fi
+
+          echo "annotation<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Git Tag with annotation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.version.outputs.new_tag }} -m "${{ steps.tag_note.outputs.annotation }}"
+          git push origin ${{ steps.version.outputs.new_tag }}
