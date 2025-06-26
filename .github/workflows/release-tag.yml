@@ -59,7 +59,7 @@ jobs:
           # Wyciągnięcie release notes pomiędzy ## Release note a kolejnym ## (albo końcem pliku)
           NOTE=$(awk '
             BEGIN { flag=0 }
-            toupper($0) ~ /^## RELEASE NOTE/ { flag=1; next }
+            toupper($0) ~ /^(#)+ RELEASE NOTE/ { flag=1; next }
             flag && /^## / { exit }
             flag { print }
           ' pr_body.md)
