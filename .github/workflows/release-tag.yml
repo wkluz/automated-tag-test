@@ -52,31 +52,27 @@ jobs:
 
       - name: Extract tag annotation
         id: tag_note
-        run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-      
-            NOTE=$(awk '
-              BEGIN { flag=0 }
-              /^## Release note/ { flag=1; next }
-              /^## / { flag=0 }
-              flag
-            ' <<EOF
-          $PR_BODY
+        run:
+          NOTE=$(awk '
+          BEGIN { flag=0 }
+          /^## Release note/ { flag=1; next }
+          /^## / { flag=0 }
+          flag
+          ' <<EOF
+          ${{ github.event.pull_request.body }}
           EOF
           )
           
           if [ -z "$NOTE" ]; then
           echo "No release note section found, using PR title."
-          NOTE="$PR_TITLE"
+          NOTE="${{ github.event.pull_request.title }}"
           fi
-  
+          
           {
-            echo "annotation<<EOF"
-            echo "$NOTE"
-            echo "EOF"
+          echo "annotation<<EOF"
+          echo "$NOTE"
+          echo "EOF"
           } >> "$GITHUB_OUTPUT"
-  
       - name: Create Git Tag via GitHub API
         env:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN_GH }}
