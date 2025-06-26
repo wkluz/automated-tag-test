@@ -53,25 +53,28 @@ jobs:
       - name: Extract tag annotation
         id: tag_note
         run: |
-          NOTE=$(awk '
-          BEGIN { flag=0 }
-          /^## Release note/ { flag=1; next }
-          /^## / { flag=0 }
-          flag
-          ' <<EOF
-          ${{ github.event.pull_request.body }}
-          EOF
-          )
+          # Zrzucenie body do pliku tymczasowego
+          echo "${{ github.event.pull_request.body }}" > pr_body.md
           
+          # Wyciągnięcie release notes pomiędzy ## Release note a kolejnym ## (albo końcem pliku)
+          NOTE=$(awk '
+            BEGIN { flag=0 }
+            toupper($0) ~ /^## RELEASE NOTE/ { flag=1; next }
+            flag && /^## / { exit }
+            flag { print }
+          ' pr_body.md)
+          
+          # Jeśli nic nie znaleziono — użyj tytułu
           if [ -z "$NOTE" ]; then
-          echo "No release note section found, using PR title."
-          NOTE="${{ github.event.pull_request.title }}"
+            echo "No release note section found, using PR title."
+            NOTE="${{ github.event.pull_request.title }}"
           fi
           
+          # Wypisanie jako output
           {
-          echo "annotation<<EOF"
-          echo "$NOTE"
-          echo "EOF"
+            echo "annotation<<EOF"
+            echo "$NOTE"
+            echo "EOF"
           } >> "$GITHUB_OUTPUT"
       - name: Create Git Tag via GitHub API
         env:
