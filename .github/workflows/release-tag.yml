@@ -60,7 +60,7 @@ jobs:
           NOTE=$(awk '
             BEGIN { flag=0 }
             toupper($0) ~ /^(#)+ RELEASE NOTE/ { flag=1; next }
-            flag && /^## / { exit }
+            flag && /^(#)+ / { exit }
             flag { print }
           ' pr_body.md)
           
